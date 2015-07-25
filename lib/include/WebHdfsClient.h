@@ -129,9 +129,9 @@ private:
     std::string m_userName;
 };
 
-
-
 /** @brief %WebHDFS client class
+ *
+ *  @attention Client is not thread safe
  *
  *  Usage:
  *  @code{.cpp}
