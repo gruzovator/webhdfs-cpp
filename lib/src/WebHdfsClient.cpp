@@ -15,7 +15,8 @@ Exception::Exception(const std::string &error)
 {
 }
 
-std::string OptionsBase::toQueryString() const
+
+std::string details::OptionsBase::toQueryString() const
 {
     std::string query;
     for (const auto &item : m_options)
@@ -92,7 +93,11 @@ RemoveOptions &RemoveOptions::setRecursive(bool recursive)
     return *this;
 }
 
-ClientOptions::ClientOptions() : m_connectionTimeout(0), m_dataTransferTimeout(0) {}
+ClientOptions::ClientOptions()
+    : m_connectionTimeout(0)
+    , m_dataTransferTimeout(0)
+{
+}
 
 ClientOptions &ClientOptions::setConnectTimeout(int seconds)
 {
@@ -181,8 +186,8 @@ public:
         return oss.str();
     }
 
-    std::string
-    makeUrl(const std::string &remotePath, const std::string &operation, const OptionsBase &opts)
+    std::string makeUrl(const std::string &remotePath, const std::string &operation,
+                        const details::OptionsBase &opts)
     {
         return makeUrl(remotePath, operation) + opts.toQueryString();
     }
@@ -202,7 +207,9 @@ class Client::HttpClient
     std::shared_ptr<curl_slist> m_activeHttpHeaders; // we must handle allocated headers
 
 public:
-    HttpClient() : m_curl(nullptr), m_activeHttpHeaders()
+    HttpClient()
+        : m_curl(nullptr)
+        , m_activeHttpHeaders()
     {
         std::call_once(m_curlInitFlag, []
                        {
@@ -404,7 +411,8 @@ private:
 std::once_flag Client::HttpClient::m_curlInitFlag;
 
 Client::Client(const std::string &host, int port, const ClientOptions &opts)
-    : m_urlBuilder(new UrlBuilder(host, port, opts.m_userName)), m_httpClient(new HttpClient)
+    : m_urlBuilder(new UrlBuilder(host, port, opts.m_userName))
+    , m_httpClient(new HttpClient)
 
 {
     if (opts.m_connectionTimeout > 0)
@@ -418,13 +426,15 @@ Client::Client(const std::string &host, int port, const ClientOptions &opts)
     }
 }
 
-Client::Client(const std::string &host, const ClientOptions &opts) : Client(host, 50070, opts) {}
+Client::Client(const std::string &host, const ClientOptions &opts)
+    : Client(host, 50070, opts)
+{
+}
 
 
 Client::~Client() {}
 
-void Client::writeFile(std::istream &dataSource,
-                       const std::string &remotePath,
+void Client::writeFile(std::istream &dataSource, const std::string &remotePath,
                        const WriteOptions &opts)
 {
     using Request = HttpClient::Request;
@@ -448,8 +458,7 @@ void Client::writeFile(std::istream &dataSource,
     reply = m_httpClient->make(req2);
 }
 
-void Client::readFile(const std::string &remotePath,
-                      std::ostream &dataSink,
+void Client::readFile(const std::string &remotePath, std::ostream &dataSink,
                       const ReadOptions &opts)
 {
     HttpClient::Request req;
@@ -528,9 +537,9 @@ void Client::remove(const std::string &remotePath, const RemoveOptions &opts)
     std::ostringstream oss;
     req.pDataSink = &oss;
     auto reply = m_httpClient->make(req);
-    if(oss.str() != "{\"boolean\":true}")
+    if (oss.str() != "{\"boolean\":true}")
     {
-        throw Exception(std::string("Can't delete ")+remotePath);
+        throw Exception(std::string("Can't delete ") + remotePath);
     }
 }
 
@@ -543,9 +552,9 @@ void Client::rename(const std::string &remotePath, const std::string &newRemoteP
     std::ostringstream oss;
     req.pDataSink = &oss;
     auto reply = m_httpClient->make(req);
-    if(oss.str() != "{\"boolean\":true}")
+    if (oss.str() != "{\"boolean\":true}")
     {
-        throw Exception(std::string("Can't rename")+remotePath);
+        throw Exception(std::string("Can't rename") + remotePath);
     }
 }
 

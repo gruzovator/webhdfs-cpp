@@ -14,19 +14,24 @@
 #include <map>
 #include <memory>
 
+/** @brief WebHDFS client namespace */
 namespace WebHDFS
 {
 
-/** WebHDFS client error */
+/** @brief Client operations exceptions type */
 struct Exception : std::runtime_error
 {
     Exception(const std::string &error);
 };
 
-/** @defgroup WebHDFS operations options
- * See WebHDFS doc for detailed options info.
- * @{
+/** @defgroup Options Client operations options
+ *
+ *  See %WebHDFS project docs for detailed options info.
+ *  @{
  */
+
+namespace details
+{
 
 class OptionsBase
 {
@@ -38,7 +43,9 @@ protected:
     std::map<std::string, std::string> m_options;
 };
 
-struct WriteOptions : OptionsBase
+}
+
+struct WriteOptions : details::OptionsBase
 {
     WriteOptions &setOverwrite(bool overwrite);
     WriteOptions &setBlockSize(size_t blockSize);
@@ -47,32 +54,35 @@ struct WriteOptions : OptionsBase
     WriteOptions &setBufferSize(size_t bufferSize);
 };
 
-struct AppendOptions : OptionsBase
+struct AppendOptions : details::OptionsBase
 {
     AppendOptions &setBufferSize(size_t bufferSize);
 };
 
-struct ReadOptions : OptionsBase
+struct ReadOptions : details::OptionsBase
 {
     ReadOptions &setOffset(long offset);
     ReadOptions &setLength(long length);
     ReadOptions &setBufferSize(size_t bufferSize);
 };
 
-struct MakeDirOptions : OptionsBase
+struct MakeDirOptions : details::OptionsBase
 {
     MakeDirOptions &setPermission(int permission);
 };
 
-struct RemoveOptions : OptionsBase
+struct RemoveOptions : details::OptionsBase
 {
     RemoveOptions &setRecursive(bool recursive);
 };
 
-/** @}*/
+/** @} */
 
 
-/** File or Dir info (see FileStatus desription in WebHDFS docs)*/
+/** @brief HDFS filesystem item info
+ *
+ *  See %FileStatus object desription in %WebHDFS project docs.
+ */
 struct FileStatus
 {
     long accessTime;
@@ -94,35 +104,22 @@ struct FileStatus
 
 class Client;
 
-/**
- * @brief client configuration
+/** @brief Client options
  *
- * Call 'set' functions to change an option, otherwise default value will be used.
+ *  Call on of 'set' methods to change an option,otherwise default value will be used.
  */
 class ClientOptions
 {
 public:
     ClientOptions();
 
-    /**
-     * @brief set connection timeout (default timeout is 300 seconds)
-     * @param seconds
-     * @return
-     */
+    /** @brief Set connection timeout (default timeout is 300 seconds) */
     ClientOptions &setConnectTimeout(int seconds);
 
-    /**
-     * @brief set data transfer timeout (default timeout is inf)
-     * @param seconds
-     * @return
-     */
+    /** @brief Set data transfer timeout (default timeout is infinite) */
     ClientOptions &setDataTransferTimeout(int seconds);
 
-    /**
-     * @brief set user name for authentication
-     * @param username
-     * @return
-     */
+    /** @brief Set user name for authentication */
     ClientOptions &setUserName(const std::string &username);
 
 private:
@@ -134,25 +131,40 @@ private:
 
 
 
-/**
- * @brief WebHDFS client class
- * TODO: usage example
+/** @brief %WebHDFS client class
+ *
+ *  Usage:
+ *  @code{.cpp}
+ *
+ *  const std::string remoteHost("webhdfs.server.local");
+ *  const std::string remotePath("/tmp/test.txt");
+ *
+ *  WebHDFS::ClientOptions clientOptions;
+ *  clientOptions.setConnectTimeout(10)
+ *               .setDataTransferTimeout(6000)
+ *               .setUserName("webhdfs-client");
+ *
+ *  WebHDFS::Client client(remoteHost, clientOptions);
+ *  client.readFile(remotePath, std::cout);
+ *
+ *  @endcode
+ *
  */
 class Client
 {
 public:
     /**
-     * @brief create WebHDFS client
-     * @param host - WebHDFS service hostname
-     * @param port - WebHDFS service port
-     * @param opts - client settings
+     * @brief Create client
+     * @param host %WebHDFS service hostname
+     * @param port %WebHDFS service port
+     * @param opts Client options
      */
     Client(const std::string &host, int port, const ClientOptions &opts = ClientOptions());
 
     /**
-     * @brief create WebHDFS client
-     * @param host - WebHDFS service hostname (using default service port)
-     * @param opts - client options
+     * @brief Create client
+     * @param host %WebHDFS service hostname (using default service port)
+     * @param opts Client options
      */
     Client(const std::string &host, const ClientOptions &opts = ClientOptions());
 
@@ -163,10 +175,8 @@ public:
     Client &operator=(const Client &) = delete;
 
 
-    /** @defgroup HDFS operations
-     *
-     * @{
-     */
+    /** @name %WebHDFS operations */
+    /** @{ */
 
     void writeFile(std::istream &dataSource,
                    const std::string &remoteFilePath,
