@@ -141,7 +141,7 @@ private:
  *
  *  WebHDFS::ClientOptions clientOptions;
  *  clientOptions.setConnectTimeout(10)
- *               .setDataTransferTimeout(6000)
+ *               .setDataTransferTimeout(600)
  *               .setUserName("webhdfs-client");
  *
  *  WebHDFS::Client client(remoteHost, clientOptions);
