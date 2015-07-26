@@ -121,7 +121,7 @@ ClientOptions &ClientOptions::setUserName(const std::string &username)
 namespace
 {
 
-/** check libcurl function call result */
+/* check libcurl function call result */
 inline void checkCurl(CURLcode code)
 {
     if (code != CURLE_OK)
@@ -131,6 +131,7 @@ inline void checkCurl(CURLcode code)
     }
 }
 
+/* try parse string to json object, return true if string was parsed, otherwise return false */
 bool tryParseJson(const std::string &s, Json::Value &v)
 {
     Json::Reader reader;
@@ -138,12 +139,14 @@ bool tryParseJson(const std::string &s, Json::Value &v)
     return reader.parse(s, v, collectComments);
 }
 
+/* type to keep fields of server error reply */
 struct RemoteError
 {
     std::string type;
     std::string message;
 };
 
+/* try to parse server error reply */
 bool tryParseRemoteError(const std::string &s, RemoteError &remoteError)
 {
     Json::Value remoteErrorValue;
@@ -157,10 +160,9 @@ bool tryParseRemoteError(const std::string &s, RemoteError &remoteError)
     return false;
 }
 
-
 } // namesapce
 
-/** class to make WebHDFS operations URLs */
+/* class to build WebHDFS operations URLs */
 class Client::UrlBuilder
 {
 public:
@@ -197,6 +199,7 @@ private:
     const std::string m_userName;
 };
 
+/* class to implement http i/o */
 class Client::HttpClient
 {
     // BTW, this doesn't guard against calling libcurl init from other curl-based libs.
