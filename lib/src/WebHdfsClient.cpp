@@ -309,7 +309,24 @@ public:
             checkCurl(curl_easy_setopt(m_curl, CURLOPT_READFUNCTION, streamReadCallback));
             checkCurl(curl_easy_setopt(m_curl, CURLOPT_READDATA, req.pDataSource));
         }
-        checkCurl(curl_easy_perform(m_curl));
+
+        auto curlCode = curl_easy_perform(m_curl);
+
+        if (curlCode != CURLE_OK)
+        {
+            // special errors handling to catch errors in client callbacks, indicated by
+            // RESPONSE_CODE_CLIENT_ERROR response code.
+            if (reply.responseCode == Reply::RESPONSE_CODE_CLIENT_ERROR)
+            {
+                throw Exception(reply.clientError);
+            }
+            // main error handling
+            else
+            {
+                checkCurl(curlCode);
+            }
+        }
+
         checkCurl(curl_easy_getinfo(m_curl, CURLINFO_RESPONSE_CODE, &reply.responseCode));
         if (!req.followRedirect)
         {
@@ -391,7 +408,7 @@ private:
             {
                 reply.responseCode = Reply::RESPONSE_CODE_CLIENT_ERROR;
                 reply.clientError = "libcurl getinfo failed";
-                return 0; // TODO: special code to indicate client error?
+                return 0;
             }
 
             if (self->expectedResponseCodes != reply.responseCode)
