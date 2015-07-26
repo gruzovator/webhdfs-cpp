@@ -44,8 +44,7 @@ std::ostream &buildStrWithSep(std::ostream &oss, Sep &&sep, T &&x, Args &&... ar
 } // namespace details
 
 /**
- * Создание строки из набора разнотипных аргументов.
- * @return строка, собранная из аргуметов
+ * @brief Make a string from set of arguments
  */
 template <typename... Args>
 std::string concat(Args &&... args)
@@ -56,8 +55,7 @@ std::string concat(Args &&... args)
 }
 
 /**
- * Создание строки из набора разнотипных аргументов, используя разделитель
- * @return строка, собранная из аргуметов
+ * @brief Join a set of args into string using separator
  */
 template <typename T, typename... Args>
 std::string concat_via(T &&separator, Args &&... args)
@@ -68,8 +66,7 @@ std::string concat_via(T &&separator, Args &&... args)
 }
 
 /**
- * Создание строки из набора разнотипных аргументов, используя пробел в кач-ве разделителя
- * @return строка, собранная из аргуметов
+ * @brief Join a set of args into string using whitespace as separator
  */
 template <typename... Args>
 std::string concat_ws(Args &&... args)
