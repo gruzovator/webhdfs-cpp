@@ -72,7 +72,7 @@ int main(int argc, const char *argv[]) try
             std::ofstream ofs(dest);
             if (!ofs.is_open())
             {
-                throw std::runtime_error(str::concat_ws("Can't open file", dest));
+                throw std::runtime_error("Can't open file " + dest);
             }
             WebHDFS::Client client(remoteHost, clientOptions);
             client.readFile(remotePath, ofs);
@@ -84,7 +84,7 @@ int main(int argc, const char *argv[]) try
             std::ifstream ifs(src);
             if (!ifs.is_open())
             {
-                throw std::runtime_error(str::concat_ws("Can't open file", src));
+                throw std::runtime_error("Can't open file " + src);
             }
             WebHDFS::Client client(remoteHost, clientOptions);
             client.writeFile(ifs, remotePath, WebHDFS::WriteOptions().setOverwrite(true));
