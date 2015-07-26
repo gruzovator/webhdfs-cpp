@@ -475,7 +475,7 @@ void Client::writeFile(std::istream &dataSource, const std::string &remotePath,
     req2.url = reply.redirectUrl;
     req2.pDataSource = &dataSource;
     req2.expectedResponseCode = 201L;
-    reply = m_httpClient->make(req2);
+    m_httpClient->make(req2);
 }
 
 void Client::readFile(const std::string &remotePath, std::ostream &dataSink,
@@ -487,7 +487,7 @@ void Client::readFile(const std::string &remotePath, std::ostream &dataSink,
     req.followRedirect = true;
     req.pDataSink = &dataSink;
     req.expectedResponseCode = 200L;
-    auto reply = m_httpClient->make(req);
+    m_httpClient->make(req);
 }
 
 void Client::makeDir(const std::string &remoteDirPath, const MakeDirOptions &opts)
@@ -516,7 +516,7 @@ std::vector<FileStatus> Client::listDir(const std::string &remoteDirPath)
     req.followRedirect = true;
     std::ostringstream oss;
     req.pDataSink = &oss;
-    auto reply = m_httpClient->make(req);
+    m_httpClient->make(req);
     std::vector<FileStatus> files;
     Json::Value listingValue;
     if (tryParseJson(oss.str(), listingValue))
@@ -556,7 +556,7 @@ void Client::remove(const std::string &remotePath, const RemoveOptions &opts)
     req.expectedResponseCode = 200L;
     std::ostringstream oss;
     req.pDataSink = &oss;
-    auto reply = m_httpClient->make(req);
+    m_httpClient->make(req);
     if (oss.str() != "{\"boolean\":true}")
     {
         throw Exception(std::string("Can't delete ") + remotePath);
@@ -571,7 +571,7 @@ void Client::rename(const std::string &remotePath, const std::string &newRemoteP
     req.expectedResponseCode = 200L;
     std::ostringstream oss;
     req.pDataSink = &oss;
-    auto reply = m_httpClient->make(req);
+    m_httpClient->make(req);
     if (oss.str() != "{\"boolean\":true}")
     {
         throw Exception(std::string("Can't rename") + remotePath);
