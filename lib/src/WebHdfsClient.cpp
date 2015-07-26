@@ -344,7 +344,7 @@ public:
             RemoteError remoteError;
             if (tryParseRemoteError(reply.unexpectedResponseContent, remoteError))
             {
-                throw Exception(std::string("remote error: ") + remoteError.message);
+                throw Exception("remote error: " + remoteError.message);
             }
             else
             {
@@ -559,7 +559,7 @@ void Client::remove(const std::string &remotePath, const RemoveOptions &opts)
     m_httpClient->make(req);
     if (oss.str() != "{\"boolean\":true}")
     {
-        throw Exception(std::string("Can't delete ") + remotePath);
+        throw Exception("Can't delete " + remotePath);
     }
 }
 
@@ -574,7 +574,7 @@ void Client::rename(const std::string &remotePath, const std::string &newRemoteP
     m_httpClient->make(req);
     if (oss.str() != "{\"boolean\":true}")
     {
-        throw Exception(std::string("Can't rename") + remotePath);
+        throw Exception("Can't rename " + remotePath);
     }
 }
 
