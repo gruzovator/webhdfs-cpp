@@ -1,5 +1,7 @@
 #include <vector>
 #include <sstream>
+#include <cctype>
+#include <iomanip>
 #include <mutex>
 #include <memory>
 #include <curl/curl.h>
@@ -131,6 +133,27 @@ inline void checkCurl(CURLcode code)
     }
 }
 
+/* make CURL handle and throw Exception if can't */
+std::shared_ptr<CURL> createCurlEaseHandle()
+{
+    // BTW, this doesn't guard against calling libcurl init from other curl-based libs.
+    static std::once_flag curlInitFlag;
+
+    std::call_once(curlInitFlag, []
+                   {
+                       if (curl_global_init(CURL_GLOBAL_ALL) != 0)
+                       {
+                           throw Exception("libcurl init failed");
+                       }
+                   });
+    auto curlHandle = std::shared_ptr<CURL>(curl_easy_init(), curl_easy_cleanup);
+    if (curlHandle.get() == nullptr)
+    {
+        throw Exception("libcurl easy object creation failed");
+    }
+    return curlHandle;
+}
+
 /* try parse string to json object, return true if string was parsed, otherwise return false */
 bool tryParseJson(const std::string &s, Json::Value &v)
 {
@@ -175,7 +198,7 @@ public:
     std::string makeUrl(const std::string &remotePath, const std::string &operation)
     {
         std::stringstream oss;
-        oss << m_prefix << remotePath;
+        oss << m_prefix << urlEncode(remotePath);
         if (m_userName.empty())
         {
             oss << "?op=";
@@ -195,6 +218,28 @@ public:
     }
 
 private:
+    static std::string urlEncode(const std::string &value)
+    {
+        std::ostringstream escaped;
+        escaped.fill('0');
+        escaped << std::hex;
+        for (const auto &c : value)
+        {
+            // Keep alphanumeric and other accepted characters intact
+            if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~' || c == '/')
+            {
+                escaped << c;
+            }
+            else
+            {
+                escaped << '%' << std::setw(2) << static_cast<int>(static_cast<unsigned char>(c));
+            }
+        }
+        return escaped.str();
+    }
+
+private:
+    std::shared_ptr<CURL> m_curl; // curl for remote path escaping
     const std::string m_prefix;
     const std::string m_userName;
 };
@@ -202,35 +247,19 @@ private:
 /* class to implement http i/o */
 class Client::HttpClient
 {
-    // BTW, this doesn't guard against calling libcurl init from other curl-based libs.
-    static std::once_flag m_curlInitFlag;
-
-    CURL *m_curl;
-
+    std::shared_ptr<CURL> m_curlHanlde;
+    CURL *m_curl;                                    // just a raw ptr handled by m_curlHandle
     std::shared_ptr<curl_slist> m_activeHttpHeaders; // we must handle allocated headers
 
 public:
     HttpClient()
-        : m_curl(nullptr)
+        : m_curlHanlde(createCurlEaseHandle())
+        , m_curl(m_curlHanlde.get())
         , m_activeHttpHeaders()
     {
-        std::call_once(m_curlInitFlag, []
-                       {
-                           if (curl_global_init(CURL_GLOBAL_ALL) != 0)
-                           {
-                               throw Exception("libcurl init failed");
-                           }
-                       });
-        m_curl = curl_easy_init();
-        if (m_curl == nullptr)
-        {
-            throw Exception("libcurl easy object creation failed");
-        }
         checkCurl(curl_easy_setopt(m_curl, CURLOPT_NOSIGNAL, 1));
         checkCurl(curl_easy_setopt(m_curl, CURLOPT_USERAGENT, "libcurl-agent/1.0"));
     }
-
-    ~HttpClient() { curl_easy_cleanup(m_curl); }
 
     void setConnectTimeout(int seconds)
     {
@@ -427,8 +456,6 @@ private:
         }
     };
 };
-
-std::once_flag Client::HttpClient::m_curlInitFlag;
 
 Client::Client(const std::string &host, int port, const ClientOptions &opts)
     : m_urlBuilder(new UrlBuilder(host, port, opts.m_userName))
