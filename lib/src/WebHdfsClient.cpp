@@ -1,3 +1,9 @@
+/**
+ * @file
+ * @brief  WebHDFS client
+ * @author gruzovator@gmail.com
+ * @date   2015-07-15
+ */
 #include <vector>
 #include <sstream>
 #include <cctype>
