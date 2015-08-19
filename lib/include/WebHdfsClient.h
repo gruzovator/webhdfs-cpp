@@ -1,7 +1,7 @@
 /**
  * @file
  * @brief  WebHDFS client
- * @author gruzovator
+ * @author gruzovator@gmail.com
  * @date   2015-07-15
  */
 #ifndef WEBHDFS_CLIENT_H
