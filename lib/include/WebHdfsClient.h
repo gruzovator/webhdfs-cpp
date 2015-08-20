@@ -19,8 +19,9 @@ namespace WebHDFS
 {
 
 /** @brief Client operations exceptions type */
-struct Exception : std::runtime_error
+class Exception : public std::runtime_error
 {
+public:
     Exception(const std::string &error);
 };
 
@@ -39,14 +40,15 @@ public:
     std::string toQueryString() const;
 
 protected:
-    ~OptionsBase() {}
+    ~OptionsBase() = default;
     std::map<std::string, std::string> m_options;
 };
 
 }
 
-struct WriteOptions : details::OptionsBase
+class WriteOptions : public details::OptionsBase
 {
+public:
     WriteOptions &setOverwrite(bool overwrite);
     WriteOptions &setBlockSize(size_t blockSize);
     WriteOptions &setReplication(int replication);
@@ -54,25 +56,29 @@ struct WriteOptions : details::OptionsBase
     WriteOptions &setBufferSize(size_t bufferSize);
 };
 
-struct AppendOptions : details::OptionsBase
+class AppendOptions : public details::OptionsBase
 {
+public:
     AppendOptions &setBufferSize(size_t bufferSize);
 };
 
-struct ReadOptions : details::OptionsBase
+class ReadOptions : public details::OptionsBase
 {
+public:
     ReadOptions &setOffset(long offset);
     ReadOptions &setLength(long length);
     ReadOptions &setBufferSize(size_t bufferSize);
 };
 
-struct MakeDirOptions : details::OptionsBase
+class MakeDirOptions : public details::OptionsBase
 {
+public:
     MakeDirOptions &setPermission(int permission);
 };
 
-struct RemoveOptions : details::OptionsBase
+class RemoveOptions : public details::OptionsBase
 {
+public:
     RemoveOptions &setRecursive(bool recursive);
 };
 
@@ -85,21 +91,21 @@ struct RemoveOptions : details::OptionsBase
  */
 struct FileStatus
 {
-    long accessTime;
-    size_t blockSize;
+    long accessTime = 0;
+    size_t blockSize = 0;
     std::string group;
-    size_t length;
-    long modificationTime;
+    size_t length = 0;
+    long modificationTime = 0;
     std::string owner;
     std::string pathSuffix;
     std::string permission;
-    int replication;
+    int replication = 0;
     enum class PathObjectType
     {
         FILE,
         DIRECTORY
     };
-    PathObjectType type;
+    PathObjectType type = PathObjectType::FILE;
 };
 
 class Client;

@@ -164,7 +164,7 @@ std::shared_ptr<CURL> createCurlEaseHandle()
 bool tryParseJson(const std::string &s, Json::Value &v)
 {
     Json::Reader reader;
-    static const auto collectComments = false;
+    constexpr auto collectComments = false;
     return reader.parse(s, v, collectComments);
 }
 
