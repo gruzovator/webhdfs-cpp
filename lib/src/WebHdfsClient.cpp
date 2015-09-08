@@ -485,7 +485,11 @@ Client::Client(const std::string &host, const ClientOptions &opts)
 }
 
 
-Client::~Client() {}
+Client::~Client() = default;
+
+Client(Client &&) = default;
+
+Client& operator=(Client &&)=default;
 
 void Client::writeFile(std::istream &dataSource, const std::string &remotePath,
                        const WriteOptions &opts)
