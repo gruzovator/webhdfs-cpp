@@ -172,7 +172,7 @@ public:
      * @param host %WebHDFS service hostname (using default service port)
      * @param opts Client options
      */
-    Client(const std::string &host, const ClientOptions &opts = ClientOptions());
+    explicit Client(const std::string &host, const ClientOptions &opts = ClientOptions());
 
     ~Client();
 
