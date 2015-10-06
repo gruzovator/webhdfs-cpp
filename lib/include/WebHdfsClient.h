@@ -169,7 +169,7 @@ public:
 
     /**
      * @brief Create client
-     * @param host %WebHDFS service hostname (using default service port)
+     * @param host %WebHDFS service hostname (using default webhdfs service port - 50070)
      * @param opts Client options
      */
     explicit Client(const std::string &host, const ClientOptions &opts = ClientOptions());

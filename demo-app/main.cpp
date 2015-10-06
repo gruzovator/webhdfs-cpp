@@ -124,9 +124,13 @@ int main(int argc, const char *argv[]) try
                 {
                     oss << item.pathSuffix.substr(0, 16) + "...";
                 }
-                else
+                else if (!item.pathSuffix.empty())
                 {
                     oss << item.pathSuffix;
+                }
+                else //remotePath is a file, just copy it 
+                {
+                    oss << remotePath.substr(remotePath.find_last_of('/'));
                 }
                 oss << std::setw(10)
                     << (item.type == WebHDFS::FileStatus::PathObjectType::FILE ? "file" : "dir")
@@ -171,6 +175,63 @@ int main(int argc, const char *argv[]) try
             throwWrongRemotePathFormat("rename");
         }
     }
+    else if (argc == 3 && argv[1] == std::string("test"))
+    {
+        const std::string remoteDirPath(argv[2]);
+
+        if (parseRemotePath(remoteDirPath, remoteHost, remotePath))
+        {
+            log_info("Testing...");
+            remotePath+="/test.txt";
+            WebHDFS::Client client(remoteHost, clientOptions);
+            for(size_t i=0; i<2; ++i)
+            {
+                log_info("Iteration", i);
+                {
+                    log_info("Creating temporary remote file", remotePath);
+                    std::stringstream ss("test1");
+                    client.writeFile(ss, remotePath);
+                }
+                {
+                    log_info("Listing remote path", remotePath);
+                    const auto items = client.listDir(remotePath);
+                    for(const auto &item: items)
+                    {
+                        cout << item.pathSuffix << endl;
+                    }
+                }
+                {
+                    log_info("Renaming temporary remote file from", remotePath, "to", remotePath+".~");
+                    client.rename(remotePath, remotePath+".~");
+                    log_info("Renaming remote file back from", remotePath+".~", "to", remotePath);
+                    client.rename(remotePath+".~", remotePath);
+                }
+                {
+                    log_info("Cat temporary remote file", remotePath);
+                    client.readFile(remotePath, cout);
+                    cout << endl;
+                }
+                {
+                    log_info("Overwriting temporary remote file", remotePath);
+                    std::stringstream ss("test2");
+                    client.writeFile(ss, remotePath, WebHDFS::WriteOptions().setOverwrite(true));
+                }
+                {
+                    log_info("Cat temporary remote file", remotePath);
+                    client.readFile(remotePath, cout);
+                    cout << endl;
+                }
+                {
+                    log_info("Removing remote file", remotePath);
+                    client.remove(remotePath);
+                }
+            }
+        }
+        else
+        {
+            throwWrongRemotePathFormat("test");
+        }
+    }
     else
     {
         std::string app = argv[0];
@@ -187,6 +248,7 @@ int main(int argc, const char *argv[]) try
                   << app << " rm <hdfs path>\n\t"
                   << app << " ls <hdfs dir path>\n\t"
                   << app << " rename <hdfs path> <new path>\n"
+                  << app << " test <hdfs tmp dir path to r/w test files>\n"
                   << "Example:\n\t"
                   << app << " cat hdfs://hd0-dev/tmp/webhdfs-test.txt\n";
         return 1;

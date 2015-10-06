@@ -307,9 +307,10 @@ public:
     {
         Reply reply;
         ReplyHandler replyHandler{reply, req.expectedResponseCode, req.pDataSink, m_curl};
-
+        //curl_easy_setopt(m_curl, CURLOPT_VERBOSE, 1L);
         checkCurl(curl_easy_setopt(m_curl, CURLOPT_URL, req.url.c_str()));
         checkCurl(curl_easy_setopt(m_curl, CURLOPT_FOLLOWLOCATION, req.followRedirect ? 1L : 0L));
+        checkCurl(curl_easy_setopt(m_curl, CURLOPT_CUSTOMREQUEST, NULL));
         switch (req.type)
         {
         case Request::Type::GET:
@@ -334,6 +335,7 @@ public:
             break;
         case Request::Type::DELETE:
             checkCurl(curl_easy_setopt(m_curl, CURLOPT_CUSTOMREQUEST, "DELETE"));
+            checkCurl(curl_easy_setopt(m_curl, CURLOPT_INFILESIZE, -1));
             setHttpHeaders({"Expect:", "Transfer-Encoding:"});
             break;
         }
@@ -611,7 +613,7 @@ void Client::rename(const std::string &remotePath, const std::string &newRemoteP
     m_httpClient->make(req);
     if (oss.str() != "{\"boolean\":true}")
     {
-        throw Exception("Can't rename " + remotePath);
+        throw Exception("Can't rename " + remotePath + " (invalid path)");
     }
 }
 
