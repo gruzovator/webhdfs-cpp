@@ -334,9 +334,9 @@ public:
             throw Exception("Post requests not implemented");
             break;
         case Request::Type::DELETE:
+            checkCurl(curl_easy_setopt(m_curl, CURLOPT_HTTPGET, 1L));
             checkCurl(curl_easy_setopt(m_curl, CURLOPT_CUSTOMREQUEST, "DELETE"));
-            checkCurl(curl_easy_setopt(m_curl, CURLOPT_INFILESIZE, -1));
-            setHttpHeaders({"Expect:", "Transfer-Encoding:"});
+            setHttpHeaders({"Expect:", "Transfer-Encoding:", "Content-Length:"});
             break;
         }
         checkCurl(curl_easy_setopt(m_curl, CURLOPT_WRITEFUNCTION, ReplyHandler::writeCallback));
